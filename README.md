@@ -1,11 +1,28 @@
 # OAQ & Threads System — Vicharanashala
-**Once Asked Questions · Threaded discussions · SP & Wallet System · MERN Stack · v2.0**
+**Once Asked Questions · Threaded discussions · SP & Wallet System · MERN Stack · v2.1**
 
 Every query the team answers once becomes a permanent asset. Subsequent interns get that answer in under three seconds without human involvement.
 
 ---
 
-## What's New in v2.0
+## What's New in v2.1
+
+### Confirm Password & Validation
+- New confirm password field on registration with client + server-side matching validation
+- Show/hide password toggle (eye button) on all password fields
+- All fields required check before form submission
+
+### Forgot Password Flow
+- Email-based password reset with secure token generation
+- 1-hour token expiry stored in user document
+- Simple step: email → reset token → new password
+
+### Google Sign-In
+- OAuth 2.0 Google authentication integration
+- Seamless Google account linking with existing email accounts
+- Dedicated callback handler for OAuth redirect flow
+
+### What's New in v2.0
 
 ### React Router Navigation
 - URL-based routing with proper browser back/forward support
@@ -49,6 +66,18 @@ npm run dev
 
 **Startup Issues?** See [STARTING.md](./STARTING.md) for troubleshooting.
 
+### Google OAuth Setup (Optional)
+To enable Google Sign-In:
+1. Go to [Google Cloud Console](https://console.cloud.google.com) → Create/Select Project → APIs & Services → Credentials
+2. Configure **OAuth consent screen** (External) with your app name and email
+3. Create **OAuth Client ID** → Web application
+4. Add `http://localhost:5173/auth/google/callback` to **Authorized redirect URIs**
+5. Copy the Client ID and create `client/.env`:
+   ```env
+   VITE_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+   ```
+6. Restart the client dev server
+
 **Demo accounts seeded by default:**
 | Email | Password | Role | Access Level |
 |---|---|---|---|
@@ -77,7 +106,7 @@ oaq-system/
 │   │   ├── Section.js            # 13 locked and dynamic sections
 │   │   └── CoOccurrence.js       # Collaborative recommendation graph
 │   ├── routes/
-│   │   ├── auth.js               # User registration, login, and superadmin creation
+│   │   ├── auth.js               # Registration, login, forgot/reset password, Google OAuth
 │   │   ├── oaq.js                # Search, upvoting, resolving, and flagging
 │   │   ├── threads.js            # Threaded discussion management
 │   │   ├── sections.js           # Sections management
@@ -103,7 +132,7 @@ oaq-system/
         │   └── audioController.js# Adaptation layer for en-IN Voice Synthesis
         ├── components/
         │   ├── Topbar.jsx        # Navigation + Dark Mode Toggle + role-based gates
-        │   ├── LoginForm.jsx     # Contrasted and responsive credentials form
+        │   ├── LoginForm.jsx     # Credentials form with confirm password, eye toggle, forgot password & Google sign-in
         │   ├── SPDashboard.jsx   # Ledger statements, top 50, and wallet charts
         │   ├── BaselineOAQ.jsx   # 13 locked static baseline FAQs accordions
         │   ├── TrendingFeed.jsx  # Top-15 query RSS feed with 5min auto-refresh
@@ -120,7 +149,8 @@ oaq-system/
             ├── HomePage.jsx      # OAQ main portal with search and trending
             ├── TrackerPage.jsx   # Active FCFS board table
             ├── ThreadsPage.jsx   # Threaded discussions
-            └── AdminPage.jsx     # Moderation queues, stats, and SP adjustment
+            ├── AdminPage.jsx     # Moderation queues, stats, and SP adjustment
+            └── GoogleCallback.jsx# Google OAuth redirect handler
 ```
 
 ---
@@ -142,6 +172,12 @@ oaq-system/
 12. **Admin Moderation & Management Panel** — Dashboard for admins
 13. **Real-Time Sync Broadcaster** — Socket.io instant synchronization
 
+### Auth & Security
+- **Confirm Password Validation** — Client + server-side password match enforcement
+- **Show/Hide Password Toggle** — Eye button for visibility on password fields
+- **Forgot Password Flow** — Token-based password reset with 1-hour expiry
+- **Google OAuth 2.0 Sign-In** — Third-party authentication via Google accounts
+
 ### Navigation & UI
 - **React Router** — URL-based navigation with browser history support
 - **Dark/Light Mode** — CSS variable-based theming
@@ -156,6 +192,9 @@ oaq-system/
 ### 1. Authentication (`/api/auth`)
 - `POST /api/auth/register` - Create a new intern/mentor/admin account.
 - `POST /api/auth/login` - Authenticate user credentials and return a signed JWT token.
+- `POST /api/auth/forgot-password` - Request password reset token (returns token when no email service configured).
+- `POST /api/auth/reset-password` - Reset password using token + new password + confirm password.
+- `POST /api/auth/google` - Authenticate or create account using Google OAuth credentials.
 
 ### 2. Once Asked Questions (`/api/oaq`)
 - `GET /api/oaq/baseline` - Fetch the 13 locked baseline FAQs.
